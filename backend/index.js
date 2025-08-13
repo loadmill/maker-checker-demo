@@ -173,3 +173,8 @@ app.get('*', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+// New payment flow
+// 1. Maker initiates transfer with additional "description" field
+// 2. Checker can see the description when approving/rejecting
+// 3. Audit log includes the description for each transaction     
