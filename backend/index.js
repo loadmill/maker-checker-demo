@@ -170,6 +170,20 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
 });
 
+// Background cleanup process for old transactions
+const cleanupOldTransactions = () => {
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+  const initialCount = transactions.length;
+  transactions = transactions.filter(t => new Date(t.createdAt) > oneHourAgo);
+  const removedCount = initialCount - transactions.length;
+  if (removedCount > 0) {
+    console.log(`Cleaned up ${removedCount} old transactions`);
+  }
+};
+
+// Run cleanup every 10 minutes
+setInterval(cleanupOldTransactions, 10 * 60 * 1000);
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
