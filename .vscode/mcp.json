@@ -1,0 +1,22 @@
+{
+    "servers": {
+        "loadmill": {
+            "type": "stdio",
+            "command": "npx",
+            "args": [
+                "@loadmill/mcp"
+            ],
+            "env": {
+                "LOADMILL_API_TOKEN": "${input:loadmill-api-token}"
+            }
+        }
+    },
+    "inputs": [
+        {
+            "id": "loadmill-api-token",
+            "type": "promptString",
+            "description": "Loadmill API token",
+            "password": true
+        }
+    ]
+}
