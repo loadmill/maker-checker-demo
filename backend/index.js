@@ -35,7 +35,7 @@ const getUserByToken = (token) => {
 
 // Helper to get token from cookies or headers (for backward compatibility)
 const getTokenFromRequest = (req) => {
-  return req.cookies.token || req.headers.token;
+  return req.headers.token || req.cookies.token;
 };
 
 // ----- API Endpoints -----
