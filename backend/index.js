@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const cookieParser = require('cookie-parser');
 const app = express();
 const { expressRecorder } = require('@loadmill/node-recorder');
 const PORT = process.env.PORT || 3001;
@@ -14,6 +15,7 @@ app.use(expressRecorder({
 
 // Must come after the Loadmill recorder for raw body capture
 app.use(express.json());
+app.use(cookieParser());
 
 // ----- In-memory data -----
 const users = [
@@ -31,13 +33,18 @@ const getUserByToken = (token) => {
   return users.find(u => u.username === username && u.role === role);
 };
 
+// Helper to get token from cookies or headers (for backward compatibility)
+const getTokenFromRequest = (req) => {
+  return req.cookies.token || req.headers.token;
+};
+
 // ----- API Endpoints -----
 
 // Login
 app.post('/api/login', (req, res) => {
   const { username, password, role } = req.body;
   const user = users.find(
-    u => u.username === username 
+    u => u.username === username
     && u.password === password
     && u.role === role
   );
@@ -45,12 +52,26 @@ app.post('/api/login', (req, res) => {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
   const token = generateToken(user.username, user.role);
+
+  // Set cookies for token, role, and username
+  res.cookie('token', token, { httpOnly: false, maxAge: 24 * 60 * 60 * 1000 }); // 24 hours
+  res.cookie('role', user.role, { httpOnly: false, maxAge: 24 * 60 * 60 * 1000 });
+  res.cookie('username', user.username, { httpOnly: false, maxAge: 24 * 60 * 60 * 1000 });
+
   res.json({ token, role: user.role, username: user.username });
+});
+
+// Logout
+app.post('/api/logout', (req, res) => {
+  res.clearCookie('token');
+  res.clearCookie('role');
+  res.clearCookie('username');
+  res.json({ success: true });
 });
 
 // Initiate transfer (Maker only)
 app.post('/api/transfer/initiate', (req, res) => {
-  const { token } = req.headers;
+  const token = getTokenFromRequest(req);
   const user = getUserByToken(token);
   if (!user || user.role !== 'maker') {
     return res.status(403).json({ error: 'Unauthorized' });
@@ -82,7 +103,7 @@ app.post('/api/transfer/initiate', (req, res) => {
 
 // List all transfers for Maker (Maker only)
 app.get('/api/transfer/my', (req, res) => {
-  const { token } = req.headers;
+  const token = getTokenFromRequest(req);
   const user = getUserByToken(token);
   if (!user || user.role !== 'maker') {
     return res.status(403).json({ error: 'Unauthorized' });
@@ -92,7 +113,7 @@ app.get('/api/transfer/my', (req, res) => {
 
 // List pending transfers (Checker only)
 app.get('/api/transfer/pending', (req, res) => {
-  const { token } = req.headers;
+  const token = getTokenFromRequest(req);
   const user = getUserByToken(token);
   if (!user || user.role !== 'checker') {
     return res.status(403).json({ error: 'Unauthorized' });
@@ -102,7 +123,7 @@ app.get('/api/transfer/pending', (req, res) => {
 
 // Approve a transfer (Checker only)
 app.post('/api/transfer/approve', (req, res) => {
-  const { token } = req.headers;
+  const token = getTokenFromRequest(req);
   const user = getUserByToken(token);
   if (!user || user.role !== 'checker') {
     return res.status(403).json({ error: 'Unauthorized' });
@@ -127,7 +148,7 @@ app.post('/api/transfer/approve', (req, res) => {
 
 // Get transaction by ID (any logged-in user)
 app.get('/api/transfer/:transactionId', (req, res) => {
-  const { token } = req.headers;
+  const token = getTokenFromRequest(req);
   if (!getUserByToken(token)) return res.status(403).json({ error: 'Unauthorized' });
   const t = transactions.find(tx => tx.transactionId == req.params.transactionId);
   if (!t) return res.status(404).json({ error: 'Transaction not found' });
@@ -136,7 +157,7 @@ app.get('/api/transfer/:transactionId', (req, res) => {
 
 // Reject a transfer (Checker only)
 app.post('/api/transfer/reject', (req, res) => {
-  const { token } = req.headers;
+  const token = getTokenFromRequest(req);
   const user = getUserByToken(token);
   if (!user || user.role !== 'checker') {
     return res.status(403).json({ error: 'Unauthorized' });

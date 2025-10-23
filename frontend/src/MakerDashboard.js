@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from './AppLayout';
+import { getCookie } from './cookieHelper';
 
 const MakerDashboard = () => {
   const navigate = useNavigate();
   const [amount, setAmount] = useState('');
   const [recipient, setRecipient] = useState('');
   const [transactions, setTransactions] = useState([]);
-  const username = localStorage.getItem('username');
-  const role = localStorage.getItem('role');
+  const username = getCookie('username');
+  const role = getCookie('role');
 
   useEffect(() => {
     if (role !== 'maker') {
@@ -20,8 +21,10 @@ const MakerDashboard = () => {
   }, []);
 
   const fetchTransactions = async () => {
+    const token = getCookie('token');
     const res = await fetch('/api/transfer/my', {
-      headers: { token: localStorage.getItem('token') },
+      headers: { token },
+      credentials: 'include', // Include cookies in request
     });
     const data = await res.json();
     setTransactions(data);
@@ -29,12 +32,14 @@ const MakerDashboard = () => {
 
   const handleSubmit = async e => {
     e.preventDefault();
+    const token = getCookie('token');
     const res = await fetch('/api/transfer/initiate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        token: localStorage.getItem('token'),
+        token,
       },
+      credentials: 'include', // Include cookies in request
       body: JSON.stringify({ amount, recipient }),
     });
     if (res.ok) {
