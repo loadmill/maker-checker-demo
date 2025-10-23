@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from './AppLayout';
+import { getCookie } from './cookieHelper';
 
 const CheckerDashboard = () => {
   const navigate = useNavigate();
   const [pending, setPending] = useState([]);
-  const role = localStorage.getItem('role');
-  const username = localStorage.getItem('username');
+  const role = getCookie('role');
+  const username = getCookie('username');
 
   useEffect(() => {
     if (role !== 'checker') {
@@ -20,20 +21,24 @@ const CheckerDashboard = () => {
   }, []);
 
   const fetchPending = async () => {
+    const token = getCookie('token');
     const res = await fetch('/api/transfer/pending', {
-      headers: { token: localStorage.getItem('token') },
+      headers: { token },
+      credentials: 'include', // Include cookies in request
     });
     const data = await res.json();
     setPending(data);
   };
 
   const approve = async transactionId => {
+    const token = getCookie('token');
     const res = await fetch('/api/transfer/approve', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        token: localStorage.getItem('token'),
+        token,
       },
+      credentials: 'include', // Include cookies in request
       body: JSON.stringify({ transactionId }),
     });
     if (res.ok) fetchPending();
@@ -41,12 +46,14 @@ const CheckerDashboard = () => {
   };
 
   const reject = async transactionId => {
+    const token = getCookie('token');
     const res = await fetch('/api/transfer/reject', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        token: localStorage.getItem('token'),
+        token,
       },
+      credentials: 'include', // Include cookies in request
       body: JSON.stringify({ transactionId }),
     });
     if (res.ok) fetchPending();

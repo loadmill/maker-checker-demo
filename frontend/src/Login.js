@@ -103,12 +103,11 @@ const Login = () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password, role }),
+      credentials: 'include', // Important: include cookies in request
     });
     const data = await res.json();
     if (res.ok && data.token) {
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('role', data.role);
-      localStorage.setItem('username', data.username);
+      // Cookies are now set by the backend. Redirect based on role.
       navigate(`/${data.role}`);
     } else {
       alert(data.error || 'Login failed');

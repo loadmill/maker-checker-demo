@@ -11,6 +11,7 @@
     },
     "dependencies": {
         "@loadmill/node-recorder": "^0.3.157",
+        "cookie-parser": "^1.4.7",
         "cors": "^2.8.5",
         "express": "^4.21.2",
         "path": "^0.12.7"

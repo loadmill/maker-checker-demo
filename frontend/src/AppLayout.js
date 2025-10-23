@@ -34,9 +34,20 @@ const AppLayout = ({ children, role, username }) => {
                 ...styles.navLink,
                 marginLeft: link.right ? 'auto' : 0
               }}
-              onClick={e => {
+              onClick={async (e) => {
                 if (link.label === 'Logout') {
-                  localStorage.clear();
+                  e.preventDefault();
+                  try {
+                    await fetch('/api/logout', {
+                      method: 'POST',
+                      credentials: 'include',
+                    });
+                    // Small delay to ensure Loadmill recorder captures the request
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                  } catch (err) {
+                    console.error('Logout error:', err);
+                  }
+                  window.location.href = '/';
                 }
               }}
             >
