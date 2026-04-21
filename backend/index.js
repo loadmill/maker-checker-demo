@@ -91,7 +91,7 @@ app.post('/api/transfer/initiate', (req, res) => {
     createdAt: new Date().toISOString(),
     approvedAt: null,
   };
-  transactions.push(t);
+  transactions.unshift(t);
   auditLog.push({
     type: 'INITIATE',
     actor: user.username,
