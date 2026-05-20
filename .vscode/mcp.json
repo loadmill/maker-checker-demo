@@ -9,6 +9,10 @@
             "env": {
                 "LOADMILL_API_TOKEN": "${input:loadmill-api-token}"
             }
+        },
+        "github": {
+            "type": "http",
+            "url": "https://api.githubcopilot.com/mcp/"
         }
     },
     "inputs": [
